@@ -70,6 +70,7 @@ class BrowseNotifier extends StateNotifier<BrowseState> {
   /// Load initial resources
   Future<void> loadResources({
     List<String>? tagIds,
+    Map<String, String>? tagFilters,
     String? search,
     bool refresh = false,
   }) async {
@@ -85,6 +86,10 @@ class BrowseNotifier extends StateNotifier<BrowseState> {
 
     try {
       final response = await _repository.browseResources(
+        grade: tagFilters?['grade'],
+        subject: tagFilters?['subject'],
+        medium: tagFilters?['medium'],
+        resourceType: tagFilters?['resourceType'],
         search: search,
         page: 1,
         limit: 20,
@@ -135,8 +140,13 @@ class BrowseNotifier extends StateNotifier<BrowseState> {
   }
 
   /// Filter by tags
-  Future<void> filterByTags(List<String> tagIds) async {
-    await loadResources(tagIds: tagIds, search: state.searchQuery, refresh: true);
+  Future<void> filterByTags(List<String> tagIds, Map<String, String> tagFilters) async {
+    await loadResources(
+      tagIds: tagIds,
+      tagFilters: tagFilters,
+      search: state.searchQuery,
+      refresh: true,
+    );
   }
 
   /// Search resources

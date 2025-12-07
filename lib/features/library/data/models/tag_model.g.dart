@@ -12,7 +12,9 @@ TagModel _$TagModelFromJson(Map<String, dynamic> json) => TagModel(
   type: $enumDecode(_$TagTypeEnumMap, json['type']),
   description: json['description'] as String?,
   parentId: json['parentId'] as String?,
-  createdAt: DateTime.parse(json['createdAt'] as String),
+  createdAt: json['createdAt'] == null
+      ? null
+      : DateTime.parse(json['createdAt'] as String),
 );
 
 Map<String, dynamic> _$TagModelToJson(TagModel instance) => <String, dynamic>{
@@ -21,7 +23,7 @@ Map<String, dynamic> _$TagModelToJson(TagModel instance) => <String, dynamic>{
   'type': _$TagTypeEnumMap[instance.type]!,
   'description': instance.description,
   'parentId': instance.parentId,
-  'createdAt': instance.createdAt.toIso8601String(),
+  'createdAt': instance.createdAt?.toIso8601String(),
 };
 
 const _$TagTypeEnumMap = {
@@ -35,9 +37,11 @@ const _$TagTypeEnumMap = {
 TagHierarchyNode _$TagHierarchyNodeFromJson(Map<String, dynamic> json) =>
     TagHierarchyNode(
       tag: TagModel.fromJson(json['tag'] as Map<String, dynamic>),
-      children: (json['children'] as List<dynamic>)
-          .map((e) => TagHierarchyNode.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      children:
+          (json['children'] as List<dynamic>?)
+              ?.map((e) => TagHierarchyNode.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
 
 Map<String, dynamic> _$TagHierarchyNodeToJson(TagHierarchyNode instance) =>

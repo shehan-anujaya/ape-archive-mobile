@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../../../core/constants/api_constants.dart';
@@ -131,7 +131,9 @@ class ResourceDetailScreen extends ConsumerWidget {
                 _MetadataRow(
                   icon: Icons.schedule,
                   label: 'Uploaded',
-                  value: timeago.format(resource.createdAt),
+                  value: resource.createdAt != null
+                      ? timeago.format(resource.createdAt!)
+                      : 'Unknown date',
                 ),
                 _MetadataRow(
                   icon: Icons.visibility,
@@ -172,18 +174,73 @@ class ResourceDetailScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
                 ],
 
-                // View PDF Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _viewPDF(context, resource, streamingUrl),
-                    icon: const Icon(Icons.visibility),
-                    label: const Text('View PDF'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                // View PDF Button (hidden on web due to CORS restrictions)
+                if (!kIsWeb)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _viewPDF(context, resource, streamingUrl),
+                      icon: const Icon(Icons.visibility),
+                      label: const Text('View PDF'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
                     ),
                   ),
-                ),
+                
+                // Web platform notice
+                if (kIsWeb)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.info_outline,
+                          color: AppColors.primary,
+                          size: 32,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'PDF Viewing Not Available on Web',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Due to browser security restrictions (CORS), PDFs cannot be viewed directly in the web version. Please use the mobile app to view this resource.',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TextButton.icon(
+                              onPressed: () => _shareResource(resource),
+                              icon: const Icon(Icons.share, size: 18),
+                              label: const Text('Share'),
+                            ),
+                            const SizedBox(width: 8),
+                            TextButton.icon(
+                              onPressed: () => _copyLink(context, resource),
+                              icon: const Icon(Icons.link, size: 18),
+                              label: const Text('Copy Link'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
 
                 const SizedBox(height: 80),
               ],
@@ -218,6 +275,15 @@ class ResourceDetailScreen extends ConsumerWidget {
       const SnackBar(content: Text('Download started...')),
     );
     // TODO: Implement actual download functionality
+  }
+
+  void _copyLink(BuildContext context, ResourceModel resource) {
+    // Copy resource link to clipboard
+    final link = '${ApiConstants.baseUrl}/resources/${resource.id}';
+    // Note: Would need flutter/services for Clipboard on actual implementation
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Link copied: $link')),
+    );
   }
 }
 

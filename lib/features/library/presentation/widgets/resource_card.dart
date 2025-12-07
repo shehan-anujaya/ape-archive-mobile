@@ -114,7 +114,9 @@ class ResourceCard extends StatelessWidget {
                         ],
                         Expanded(
                           child: Text(
-                            timeago.format(resource.createdAt),
+                            resource.createdAt != null
+                                ? timeago.format(resource.createdAt!)
+                                : 'Unknown date',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall
