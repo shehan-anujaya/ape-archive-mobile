@@ -109,8 +109,8 @@ class ProfileScreen extends ConsumerWidget {
             // Profile Header
             SliverToBoxAdapter(
               child: Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(24),
+                margin: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
@@ -147,7 +147,7 @@ class ProfileScreen extends ConsumerWidget {
                           shape: BoxShape.circle,
                         ),
                         child: CircleAvatar(
-                          radius: 50,
+                          radius: 40,
                           backgroundImage: user.picture != null
                               ? NetworkImage(user.picture!)
                               : null,
@@ -155,14 +155,14 @@ class ProfileScreen extends ConsumerWidget {
                           child: user.picture == null
                               ? Icon(
                                   Icons.person_rounded,
-                                  size: 50,
+                                  size: 40,
                                   color: AppColors.primary,
                                 )
                               : null,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
                     // Name
                     Text(
                       user.name,
@@ -172,7 +172,7 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     // Email
                     Text(
                       user.email,
@@ -181,7 +181,7 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     // Role Badge
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -274,21 +274,6 @@ class ProfileScreen extends ConsumerWidget {
                     },
                   ),
                   const SizedBox(height: 24),
-                  _buildSectionTitle(context, 'Preferences'),
-                  const SizedBox(height: 12),
-                  _buildMenuCard(
-                    context,
-                    icon: Icons.settings_rounded,
-                    title: 'Settings',
-                    subtitle: 'App preferences & more',
-                    gradient: [const Color(0xFF4facfe), const Color(0xFF00f2fe)],
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Coming soon!')),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
                   // Sign Out Button
                   Container(
                     margin: const EdgeInsets.only(bottom: 24),
@@ -369,7 +354,7 @@ class ProfileScreen extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.03),
+            color: Colors.white.withOpacity(0.07),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: Colors.white.withOpacity(0.08),
