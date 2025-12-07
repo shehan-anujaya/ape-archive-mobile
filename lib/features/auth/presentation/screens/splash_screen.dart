@@ -155,24 +155,27 @@ class GridPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = gridColor
-      ..strokeWidth = 0.5
-      ..style = PaintingStyle.stroke;
+      ..color = gridColor.withOpacity(0.08)
+      ..strokeWidth = 0.75
+      ..style = PaintingStyle.stroke
+      ..isAntiAlias = true;
 
-    // Draw vertical lines
-    for (double i = 0; i < size.width; i += gridSize) {
+    // Avoid drawing border lines directly on the edge to prevent outlines.
+    final double verticalLimit = size.width - gridSize;
+    final double horizontalLimit = size.height - gridSize;
+
+    for (double x = gridSize; x < verticalLimit; x += gridSize) {
       canvas.drawLine(
-        Offset(i, 0),
-        Offset(i, size.height),
+        Offset(x, 0),
+        Offset(x, size.height),
         paint,
       );
     }
 
-    // Draw horizontal lines
-    for (double i = 0; i < size.height; i += gridSize) {
+    for (double y = gridSize; y < horizontalLimit; y += gridSize) {
       canvas.drawLine(
-        Offset(0, i),
-        Offset(size.width, i),
+        Offset(0, y),
+        Offset(size.width, y),
         paint,
       );
     }

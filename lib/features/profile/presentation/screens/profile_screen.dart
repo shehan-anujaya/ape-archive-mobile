@@ -129,7 +129,7 @@ class ProfileScreen extends ConsumerWidget {
                   onTap: () {
                     // TODO: Navigate to settings
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Coming soon!')),
+                      const SnackBar(content: Text('Coming Soon!')),
                     );
                   },
                 ),
