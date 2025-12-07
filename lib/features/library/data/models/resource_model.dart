@@ -19,42 +19,44 @@ class ResourceModel {
   final String title;
   final String? description;
   @JsonKey(name: 'driveFileId')
-  final String driveFileId;
+  final String? driveFileId;
   @JsonKey(name: 'mimeType')
-  final String mimeType;
+  final String? mimeType;
   @JsonKey(name: 'fileSize')
-  final int fileSize;
+  final int? fileSize;
   final String? thumbnail;
-  final ResourceStatus status;
+  @JsonKey(defaultValue: ResourceStatus.pending)
+  final ResourceStatus? status;
   @JsonKey(name: 'uploaderId')
-  final String uploaderId;
+  final String? uploaderId;
   final UserModel? uploader;
+  @JsonKey(defaultValue: [])
   final List<TagModel> tags;
-  @JsonKey(name: 'viewCount')
+  @JsonKey(name: 'viewCount', defaultValue: 0)
   final int viewCount;
-  @JsonKey(name: 'downloadCount')
+  @JsonKey(name: 'downloadCount', defaultValue: 0)
   final int downloadCount;
   @JsonKey(name: 'createdAt')
-  final DateTime createdAt;
+  final DateTime? createdAt;
   @JsonKey(name: 'updatedAt')
-  final DateTime updatedAt;
+  final DateTime? updatedAt;
 
   ResourceModel({
     required this.id,
     required this.title,
     this.description,
-    required this.driveFileId,
-    required this.mimeType,
-    required this.fileSize,
+    this.driveFileId,
+    this.mimeType,
+    this.fileSize,
     this.thumbnail,
-    required this.status,
-    required this.uploaderId,
+    this.status,
+    this.uploaderId,
     this.uploader,
-    required this.tags,
-    required this.viewCount,
-    required this.downloadCount,
-    required this.createdAt,
-    required this.updatedAt,
+    this.tags = const [],
+    this.viewCount = 0,
+    this.downloadCount = 0,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory ResourceModel.fromJson(Map<String, dynamic> json) =>
@@ -63,11 +65,12 @@ class ResourceModel {
   Map<String, dynamic> toJson() => _$ResourceModelToJson(this);
 
   String get formattedSize {
-    if (fileSize < 1024) return '$fileSize B';
-    if (fileSize < 1024 * 1024) {
-      return '${(fileSize / 1024).toStringAsFixed(1)} KB';
+    if (fileSize == null || fileSize == 0) return 'Unknown size';
+    if (fileSize! < 1024) return '$fileSize B';
+    if (fileSize! < 1024 * 1024) {
+      return '${(fileSize! / 1024).toStringAsFixed(1)} KB';
     }
-    return '${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB';
+    return '${(fileSize! / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 }
 

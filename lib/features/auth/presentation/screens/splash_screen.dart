@@ -96,26 +96,42 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Logo with glow effect
-                        Container(
-                          width: 280,
-                          height: 280,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withOpacity(0.3),
-                                blurRadius: 40,
-                                spreadRadius: 10,
+                        // Logo with subtle glow effect
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Soft glow behind logo
+                            Container(
+                              width: 200,
+                              height: 200,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withOpacity(0.15),
+                                    blurRadius: 60,
+                                    spreadRadius: 30,
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: Image.asset(
-                            'assets/icons/Logo_with_text.png',
-                            width: 280,
-                            height: 280,
-                            fit: BoxFit.contain,
-                          ),
+                            ),
+                            // Logo image
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: ColorFiltered(
+                                colorFilter: const ColorFilter.mode(
+                                  Colors.transparent,
+                                  BlendMode.multiply,
+                                ),
+                                child: Image.asset(
+                                  'assets/icons/Logo_with_text.png',
+                                  width: 240,
+                                  height: 240,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 40),
                         // Loading indicator
@@ -155,24 +171,27 @@ class GridPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = gridColor
-      ..strokeWidth = 0.5
-      ..style = PaintingStyle.stroke;
+      ..color = gridColor.withOpacity(0.08)
+      ..strokeWidth = 0.75
+      ..style = PaintingStyle.stroke
+      ..isAntiAlias = true;
 
-    // Draw vertical lines
-    for (double i = 0; i < size.width; i += gridSize) {
+    // Avoid drawing border lines directly on the edge to prevent outlines.
+    final double verticalLimit = size.width - gridSize;
+    final double horizontalLimit = size.height - gridSize;
+
+    for (double x = gridSize; x < verticalLimit; x += gridSize) {
       canvas.drawLine(
-        Offset(i, 0),
-        Offset(i, size.height),
+        Offset(x, 0),
+        Offset(x, size.height),
         paint,
       );
     }
 
-    // Draw horizontal lines
-    for (double i = 0; i < size.height; i += gridSize) {
+    for (double y = gridSize; y < horizontalLimit; y += gridSize) {
       canvas.drawLine(
-        Offset(0, i),
-        Offset(size.width, i),
+        Offset(0, y),
+        Offset(size.width, y),
         paint,
       );
     }

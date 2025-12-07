@@ -30,8 +30,8 @@ class AppColors {
   static const Color surfaceTintDark = Color(0xFF2A1A19); // Dark orange tint
 
   // Grid Lines (Squared notebook pattern)
-  static const Color gridLight = Color(0xFFE0E0E0); // Light grid
-  static const Color gridDark = Color(0xFF333333); // Dark grid lines
+  static const Color gridLight = Color(0x1A000000); // Subtle light grid (10% black)
+  static const Color gridDark = Color(0x1AFFFFFF); // Subtle dark grid (10% white)
 
   // Text Colors - Light Theme (Ink on paper)
   static const Color textPrimary = Color(0xFF0F172A); // Slate-900 (Deep ink)

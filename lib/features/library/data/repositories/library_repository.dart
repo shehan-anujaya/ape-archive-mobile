@@ -18,11 +18,94 @@ class LibraryRepository {
   /// Get library hierarchy (Grade -> Subject -> Lesson -> Medium)
   Future<List<TagHierarchyNode>> getHierarchy() async {
     try {
+      print('📚 Fetching hierarchy from: ${ApiConstants.baseApiUrl}${ApiConstants.libraryHierarchy}');
+      
       final response = await _dio.get(
         '${ApiConstants.baseApiUrl}${ApiConstants.libraryHierarchy}',
       );
-      final List<dynamic> data = response.data;
-      return data.map((json) => TagHierarchyNode.fromJson(json)).toList();
+      
+      print('📚 Hierarchy response status: ${response.statusCode}');
+      print('📚 Response data type: ${response.data.runtimeType}');
+      
+      // Handle both wrapped and direct response formats
+      final responseData = response.data;
+      
+      if (responseData == null) {
+        throw ServerException(
+          message: 'Server returned null data',
+          statusCode: response.statusCode,
+        );
+      }
+      
+      List<dynamic> data;
+      
+      if (responseData is Map<String, dynamic>) {
+        print('📚 Response keys: ${responseData.keys.toList()}');
+        
+        // If response has a 'data' field
+        if (responseData.containsKey('data')) {
+          final dataField = responseData['data'];
+          print('📚 Data field type: ${dataField.runtimeType}');
+          
+          if (dataField is List) {
+            // Standard list format
+            data = dataField;
+            try {
+              return data.map((json) {
+                if (json == null) return null;
+                return TagHierarchyNode.fromJson(json as Map<String, dynamic>);
+              }).whereType<TagHierarchyNode>().toList();
+            } catch (e) {
+              print('📚 Error parsing hierarchy nodes: $e');
+              print('📚 Sample data: ${data.take(1)}');
+              throw ServerException(
+                message: 'Failed to parse hierarchy data: ${e.toString()}',
+                statusCode: response.statusCode,
+              );
+            }
+          } else if (dataField == null) {
+            // Return empty list if data is null
+            return [];
+          } else if (dataField is Map<String, dynamic>) {
+            // Nested map format: Parse the hierarchical structure
+            print('📚 Parsing nested hierarchy map...');
+            return _parseNestedHierarchy(dataField);
+          } else {
+            print('📚 Data field value: $dataField');
+            throw ServerException(
+              message: 'Invalid response format: data field is not a list or map (got ${dataField.runtimeType})',
+              statusCode: response.statusCode,
+            );
+          }
+        } else {
+          print('📚 Available keys: ${responseData.keys.join(", ")}');
+          throw ServerException(
+            message: 'Invalid response format: missing data field',
+            statusCode: response.statusCode,
+          );
+        }
+      } else if (responseData is List) {
+        data = responseData;
+        try {
+          return data.map((json) {
+            if (json == null) return null;
+            return TagHierarchyNode.fromJson(json as Map<String, dynamic>);
+          }).whereType<TagHierarchyNode>().toList();
+        } catch (e) {
+          print('📚 Error parsing hierarchy nodes: $e');
+          print('📚 Sample data: ${data.take(1)}');
+          throw ServerException(
+            message: 'Failed to parse hierarchy data: ${e.toString()}',
+            statusCode: response.statusCode,
+          );
+        }
+      } else {
+        print('📚 Response data: $responseData');
+        throw ServerException(
+          message: 'Invalid response format from server (got ${responseData.runtimeType})',
+          statusCode: response.statusCode,
+        );
+      }
     } on DioException catch (e) {
       String errorMessage = 'Failed to fetch hierarchy';
       
@@ -81,14 +164,34 @@ class LibraryRepository {
         queryParams['search'] = search;
       }
 
+      print('📚 Fetching resources from: ${ApiConstants.baseApiUrl}${ApiConstants.libraryBrowse}');
+      print('📚 Query params: $queryParams');
+      
       final response = await _dio.get(
         '${ApiConstants.baseApiUrl}${ApiConstants.libraryBrowse}',
         queryParameters: queryParams,
       );
+      
+      print('📚 Response status: ${response.statusCode}');
+      print('📚 Response type: ${response.data.runtimeType}');
 
-      return PaginatedResourceResponse.fromJson(response.data);
+      // Handle both wrapped and direct response formats
+      final responseData = response.data;
+      if (responseData is Map<String, dynamic>) {
+        // If response has a 'data' field containing the paginated response
+        if (responseData.containsKey('data') && responseData['data'] is Map) {
+          return PaginatedResourceResponse.fromJson(responseData['data']);
+        }
+        // Otherwise assume the response itself is the paginated response
+        return PaginatedResourceResponse.fromJson(responseData);
+      }
+      
+      throw ServerException(
+        message: 'Invalid response format from server. Expected paginated resource data.',
+        statusCode: response.statusCode,
+      );
     } on DioException catch (e) {
-      String errorMessage = 'Failed to fetch resources';
+      String errorMessage = 'Failed to fetch resources from server';
       
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.sendTimeout ||
@@ -124,7 +227,22 @@ class LibraryRepository {
       final response = await _dio.get(
         '${ApiConstants.baseApiUrl}${ApiConstants.resourceById}/$id',
       );
-      return ResourceModel.fromJson(response.data);
+      
+      // Handle both wrapped and direct response formats
+      final responseData = response.data;
+      if (responseData is Map<String, dynamic>) {
+        // If response has a 'data' field containing the resource
+        if (responseData.containsKey('data') && responseData['data'] is Map) {
+          return ResourceModel.fromJson(responseData['data']);
+        }
+        // Otherwise assume the response itself is the resource
+        return ResourceModel.fromJson(responseData);
+      }
+      
+      throw ServerException(
+        message: 'Invalid response format from server',
+        statusCode: response.statusCode,
+      );
     } on DioException catch (e) {
       throw ServerException(
         message: e.response?.data['message'] ?? 'Failed to fetch resource',
@@ -135,7 +253,7 @@ class LibraryRepository {
 
   /// Get streaming URL for PDF
   String getStreamingUrl(String resourceId) {
-    return '${ApiConstants.baseApiUrl}${ApiConstants.resourceStream}/$resourceId/stream';
+    return '${ApiConstants.baseApiUrl}/resources/$resourceId/stream';
   }
 
   /// Search resources
@@ -185,5 +303,86 @@ class LibraryRepository {
     } catch (e) {
       throw ServerException(message: 'Failed to fetch popular resources');
     }
+  }
+
+  /// Parse nested hierarchy map structure from API
+  /// Format: { "Grade X": { "Subject": { "Medium": { "ResourceType": [...] } } } }
+  List<TagHierarchyNode> _parseNestedHierarchy(Map<String, dynamic> hierarchyMap) {
+    final List<TagHierarchyNode> rootNodes = [];
+    
+    // Level 1: Grades
+    hierarchyMap.forEach((gradeName, gradeContent) {
+      if (gradeContent is! Map<String, dynamic>) return;
+      
+      final List<TagHierarchyNode> subjectNodes = [];
+      
+      // Level 2: Subjects
+      gradeContent.forEach((subjectName, subjectContent) {
+        if (subjectContent is! Map<String, dynamic>) return;
+        
+        final List<TagHierarchyNode> mediumNodes = [];
+        
+        // Level 3: Mediums
+        subjectContent.forEach((mediumName, mediumContent) {
+          if (mediumContent is! Map<String, dynamic>) return;
+          
+          final List<TagHierarchyNode> resourceTypeNodes = [];
+          
+          // Level 4: Resource Types (leaf nodes containing actual resources)
+          mediumContent.forEach((resourceTypeName, resources) {
+            // Create resource type node (leaf)
+            final resourceTypeNode = TagHierarchyNode(
+              tag: TagModel(
+                id: _generateIdFromName(resourceTypeName),
+                name: resourceTypeName,
+                type: TagType.resourceType,
+              ),
+              children: [], // Leaf node
+            );
+            resourceTypeNodes.add(resourceTypeNode);
+          });
+          
+          // Create medium node
+          final mediumNode = TagHierarchyNode(
+            tag: TagModel(
+              id: _generateIdFromName(mediumName),
+              name: mediumName,
+              type: TagType.medium,
+            ),
+            children: resourceTypeNodes,
+          );
+          mediumNodes.add(mediumNode);
+        });
+        
+        // Create subject node
+        final subjectNode = TagHierarchyNode(
+          tag: TagModel(
+            id: _generateIdFromName(subjectName),
+            name: subjectName,
+            type: TagType.subject,
+          ),
+          children: mediumNodes,
+        );
+        subjectNodes.add(subjectNode);
+      });
+      
+      // Create grade node
+      final gradeNode = TagHierarchyNode(
+        tag: TagModel(
+          id: _generateIdFromName(gradeName),
+          name: gradeName,
+          type: TagType.grade,
+        ),
+        children: subjectNodes,
+      );
+      rootNodes.add(gradeNode);
+    });
+    
+    return rootNodes;
+  }
+
+  /// Generate a simple ID from a name (for temporary use)
+  String _generateIdFromName(String name) {
+    return name.toLowerCase().replaceAll(' ', '-').replaceAll(RegExp(r'[^a-z0-9-]'), '');
   }
 }

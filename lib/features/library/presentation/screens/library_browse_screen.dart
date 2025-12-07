@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/theme/app_colors.dart';
+import '../../../../shared/widgets/grid_background.dart';
 import '../../data/models/resource_model.dart';
 import '../../data/providers/library_provider.dart';
 import '../widgets/resource_card.dart';
-import '../widgets/hierarchy_selector.dart';
+import '../widgets/category_grid_selector.dart';
 import 'resource_detail_screen.dart';
 
 class LibraryBrowseScreen extends ConsumerStatefulWidget {
@@ -48,6 +50,7 @@ class _LibraryBrowseScreenState extends ConsumerState<LibraryBrowseScreen> {
   @override
   Widget build(BuildContext context) {
     final browseState = ref.watch(browseProvider);
+    final bool showCategorySelector = selectedTagIds.length < 4; // Show until all 4 levels selected
 
     return Scaffold(
       appBar: AppBar(
@@ -59,152 +62,192 @@ class _LibraryBrowseScreenState extends ConsumerState<LibraryBrowseScreen> {
               // Navigate to search screen
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () => _showFilterSheet(context),
-          ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () =>
-            ref.read(browseProvider.notifier).loadResources(refresh: true),
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            // Hierarchy Selector
-            SliverToBoxAdapter(
-              child: HierarchySelector(
-                selectedTagIds: selectedTagIds,
-                onTagsSelected: (tagIds) {
-                  setState(() => selectedTagIds = tagIds);
-                  ref.read(browseProvider.notifier).filterByTags(tagIds);
-                },
-              ),
-            ),
-
-            // Loading indicator
-            if (browseState.isLoading)
-              const SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator()),
-              ),
-
-            // Error state
-            if (browseState.error != null && browseState.resources.isEmpty)
-              SliverFillRemaining(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.cloud_off_outlined,
-                            size: 80, color: AppColors.error),
-                        const SizedBox(height: 24),
-                        Text(
-                          'Cannot Load Resources',
-                          style: Theme.of(context).textTheme.titleLarge,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          browseState.error!,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Make sure you have an internet connection and the server is available.',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+      body: GridBackground(
+        backgroundColor: AppColors.backgroundDark,
+        child: showCategorySelector && browseState.resources.isEmpty
+          ? // Show category grid when no resources loaded yet
+            CategoryGridSelector(
+              selectedTagIds: selectedTagIds,
+              onTagsSelected: (tagIds, tagFilters) {
+                setState(() => selectedTagIds = tagIds);
+                ref.read(browseProvider.notifier).filterByTags(tagIds, tagFilters);
+              },
+            )
+          : // Show resources when available
+            RefreshIndicator(
+              onRefresh: () =>
+                  ref.read(browseProvider.notifier).loadResources(refresh: true),
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  // Web platform notice
+                  if (kIsWeb)
+                    SliverToBoxAdapter(
+                      child: Container(
+                        margin: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.primary.withOpacity(0.3),
+                            width: 1,
                           ),
-                          textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 24),
-                        ElevatedButton.icon(
-                          onPressed: () => ref
-                              .read(browseProvider.notifier)
-                              .loadResources(refresh: true),
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-            // Empty state
-            if (!browseState.isLoading &&
-                browseState.resources.isEmpty &&
-                browseState.error == null)
-              SliverFillRemaining(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.folder_open,
-                        size: 64,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No resources found',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Try adjusting your filters',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.info_outline,
+                              color: AppColors.primary,
+                              size: 24,
                             ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Web Version Limitations',
+                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Browse and explore resources by hierarchy. PDF viewing requires the mobile app.',
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
+                    ),
+                  
+                  // Compact breadcrumb bar
+                  SliverToBoxAdapter(
+                    child: _buildCompactBreadcrumb(context),
                   ),
-                ),
-              ),
 
-            // Resource grid
-            if (browseState.resources.isNotEmpty)
-              SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.7,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
+                  // Loading indicator
+                  if (browseState.isLoading)
+                    const SliverFillRemaining(
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+
+                  // Empty state - subtle message
+                  if (!browseState.isLoading &&
+                      browseState.resources.isEmpty &&
+                      browseState.error == null)
+                    SliverFillRemaining(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.folder_open,
+                              size: 64,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No resources found',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Try different categories',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  // Resource grid
+                  if (browseState.resources.isNotEmpty)
+                    SliverPadding(
+                      padding: const EdgeInsets.all(16),
+                      sliver: SliverGrid(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.7,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final resource = browseState.resources[index];
+                            return ResourceCard(
+                              resource: resource,
+                              onTap: () => _navigateToDetail(context, resource),
+                            );
+                          },
+                          childCount: browseState.resources.length,
+                        ),
+                      ),
+                    ),
+
+                  // Load more indicator
+                  if (browseState.isLoadingMore)
+                    const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                    ),
+
+                  // Bottom padding
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 16),
                   ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final resource = browseState.resources[index];
-                      return ResourceCard(
-                        resource: resource,
-                        onTap: () => _navigateToDetail(context, resource),
-                      );
-                    },
-                    childCount: browseState.resources.length,
-                  ),
-                ),
+                ],
               ),
-
-            // Load more indicator
-            if (browseState.isLoadingMore)
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              ),
-
-            // Bottom padding
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 80),
             ),
-          ],
-        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactBreadcrumb(BuildContext context) {
+    if (selectedTagIds.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.category, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Viewing filtered resources',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          TextButton.icon(
+            onPressed: () {
+              setState(() => selectedTagIds = []);
+              ref.read(browseProvider.notifier).clearFilters();
+            },
+            icon: const Icon(Icons.clear, size: 16),
+            label: const Text('Clear'),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -218,129 +261,4 @@ class _LibraryBrowseScreenState extends ConsumerState<LibraryBrowseScreen> {
     );
   }
 
-  void _showFilterSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.3,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) => Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Filters',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      setState(() => selectedTagIds = []);
-                      ref.read(browseProvider.notifier).clearFilters();
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Clear All'),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(),
-            Expanded(
-              child: ListView(
-                controller: scrollController,
-                padding: const EdgeInsets.all(16),
-                children: [
-                  Text(
-                    'Sort By',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      FilterChip(
-                        label: const Text('Recent'),
-                        selected: true,
-                        onSelected: (_) {},
-                      ),
-                      FilterChip(
-                        label: const Text('Popular'),
-                        selected: false,
-                        onSelected: (_) {},
-                      ),
-                      FilterChip(
-                        label: const Text('Most Downloaded'),
-                        selected: false,
-                        onSelected: (_) {},
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Resource Type',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      FilterChip(
-                        label: const Text('Notes'),
-                        selected: false,
-                        onSelected: (_) {},
-                      ),
-                      FilterChip(
-                        label: const Text('Past Papers'),
-                        selected: false,
-                        onSelected: (_) {},
-                      ),
-                      FilterChip(
-                        label: const Text('Model Papers'),
-                        selected: false,
-                        onSelected: (_) {},
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Apply Filters'),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

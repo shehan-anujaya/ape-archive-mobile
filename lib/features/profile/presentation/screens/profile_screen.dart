@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../auth/data/providers/auth_provider.dart';
 import '../../../../shared/theme/app_colors.dart';
+import '../../../../shared/widgets/grid_background.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -15,42 +17,44 @@ class ProfileScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Profile'),
       ),
-      body: user == null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+      body: GridBackground(
+        backgroundColor: AppColors.backgroundDark,
+        child: user == null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.person_outline,
+                      size: 80,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Guest Mode',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Sign in to access your profile',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        // Navigate to login using go_router
+                        context.go('/login');
+                      },
+                      icon: const Icon(Icons.login),
+                      label: const Text('Sign In'),
+                    ),
+                  ],
+                ),
+              )
+            : ListView(
                 children: [
-                  Icon(
-                    Icons.person_outline,
-                    size: 80,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Guest Mode',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Sign in to access your profile',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      // Navigate to login
-                      Navigator.pushReplacementNamed(context, '/login');
-                    },
-                    icon: const Icon(Icons.login),
-                    label: const Text('Sign In'),
-                  ),
-                ],
-              ),
-            )
-          : ListView(
-              children: [
                 // Profile Header
                 Container(
                   padding: const EdgeInsets.all(24),
@@ -129,7 +133,7 @@ class ProfileScreen extends ConsumerWidget {
                   onTap: () {
                     // TODO: Navigate to settings
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Coming soon!')),
+                      const SnackBar(content: Text('Coming Soon!')),
                     );
                   },
                 ),
@@ -164,13 +168,14 @@ class ProfileScreen extends ConsumerWidget {
                     if (shouldLogout == true && context.mounted) {
                       await ref.read(authProvider.notifier).logout();
                       if (context.mounted) {
-                        Navigator.pushReplacementNamed(context, '/login');
+                        context.go('/login');
                       }
                     }
                   },
                 ),
               ],
             ),
+      ),
     );
   }
 

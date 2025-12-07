@@ -24,7 +24,7 @@ class TagModel {
   @JsonKey(name: 'parentId')
   final String? parentId;
   @JsonKey(name: 'createdAt')
-  final DateTime createdAt;
+  final DateTime? createdAt;
 
   TagModel({
     required this.id,
@@ -32,7 +32,7 @@ class TagModel {
     required this.type,
     this.description,
     this.parentId,
-    required this.createdAt,
+    this.createdAt,
   });
 
   factory TagModel.fromJson(Map<String, dynamic> json) =>
@@ -44,11 +44,12 @@ class TagModel {
 @JsonSerializable()
 class TagHierarchyNode {
   final TagModel tag;
+  @JsonKey(defaultValue: [])
   final List<TagHierarchyNode> children;
 
   TagHierarchyNode({
     required this.tag,
-    required this.children,
+    this.children = const [],
   });
 
   factory TagHierarchyNode.fromJson(Map<String, dynamic> json) =>

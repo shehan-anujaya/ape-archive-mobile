@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../shared/theme/app_colors.dart';
+import '../../../../shared/widgets/grid_background.dart';
 import '../../data/providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerWidget {
@@ -21,50 +22,71 @@ class LoginScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
-      body: Stack(
-        children: [
-          // Grid pattern background
-          Positioned.fill(
-            child: CustomPaint(
-              painter: GridPatternPainter(
-                gridColor: AppColors.gridDark,
-                gridSize: 40.0,
-              ),
-            ),
-          ),
-          // Login content
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
+      body: GridBackground(
+        backgroundColor: AppColors.backgroundDark,
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Logo with Text and glow
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(0.3),
-                            blurRadius: 40,
-                            spreadRadius: 10,
+                    // Logo with refined presentation
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Outer glow layer
+                        Container(
+                          width: 300,
+                          height: 300,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                AppColors.primary.withOpacity(0.3),
+                                Colors.transparent,
+                                
+                              ],
+                              stops: const [0.0, 1.0],
+                            ),
                           ),
-                        ],
-                      ),
-                      child: Image.asset(
-                        'assets/icons/Logo_with_text.png',
-                        width: 240,
-                        height: 240,
-                        fit: BoxFit.contain,
-                      ),
+                        ),
+                        // Inner radial glow
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                AppColors.primary.withOpacity(0.25),
+                                Colors.transparent,
+                              ],
+                              stops: const [0.0, 0.8],
+                            ),
+                          ),
+                        ),
+                        // Logo image with proper background handling
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.asset(
+                            'assets/icons/Text.png',
+                            width: 280,
+                            height: 280,
+                            fit: BoxFit.contain,
+                            // Remove any background color from the image
+                            color: null,
+                            colorBlendMode: BlendMode.dst,
+                          ),
+                        ),
+                      ],
                     ),
                     
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 0),
                     
                     // Title
                     Text(
-                      'Welcome to Ape Archive',
+                      'Welcome to අපේ Archive',
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -155,25 +177,25 @@ class LoginScreen extends ConsumerWidget {
                     const SizedBox(height: 24),
                     
                     // Features
-                    Wrap(
-                      spacing: 24,
-                      runSpacing: 16,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        _FeatureChip(
-                          icon: Icons.menu_book,
-                          label: '10,000+ Resources',
-                        ),
-                        _FeatureChip(
-                          icon: Icons.people,
-                          label: 'Community Driven',
-                        ),
-                        _FeatureChip(
-                          icon: Icons.download,
-                          label: 'Free Downloads',
-                        ),
-                      ],
-                    ),
+                    // Wrap(
+                    //   spacing: 24,
+                    //   runSpacing: 16,
+                    //   alignment: WrapAlignment.center,
+                    //   children: [
+                    //     _FeatureChip(
+                    //       icon: Icons.menu_book,
+                    //       label: '10,000+ Resources',
+                    //     ),
+                    //     _FeatureChip(
+                    //       icon: Icons.people,
+                    //       label: 'Community Driven',
+                    //     ),
+                    //     _FeatureChip(
+                    //       icon: Icons.download,
+                    //       label: 'Free Downloads',
+                    //     ),
+                    //   ],
+                    // ),
                     
                     if (authState.error != null) ...[
                       const SizedBox(height: 24),
@@ -190,13 +212,12 @@ class LoginScreen extends ConsumerWidget {
               ),
             ),
           ),
-        ],
       ),
     );
   }
 }
 
-/// Custom painter for squared grid pattern
+/// Custom painter for squared grid pattern (kept for backward compatibility)
 class GridPatternPainter extends CustomPainter {
   final Color gridColor;
   final double gridSize;
@@ -209,24 +230,29 @@ class GridPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = gridColor
-      ..strokeWidth = 0.5
-      ..style = PaintingStyle.stroke;
+      ..color = gridColor.withOpacity(0.08)
+      ..strokeWidth = 0.75
+      ..style = PaintingStyle.stroke
+      ..isAntiAlias = true;
 
-    // Draw vertical lines
-    for (double i = 0; i < size.width; i += gridSize) {
+    // Avoid drawing border lines on the very edge to prevent frame outlines.
+    final double verticalLimit = size.width - gridSize;
+    final double horizontalLimit = size.height - gridSize;
+
+    // Draw vertical lines inside the frame.
+    for (double x = gridSize; x < verticalLimit; x += gridSize) {
       canvas.drawLine(
-        Offset(i, 0),
-        Offset(i, size.height),
+        Offset(x, 0),
+        Offset(x, size.height),
         paint,
       );
     }
 
-    // Draw horizontal lines
-    for (double i = 0; i < size.height; i += gridSize) {
+    // Draw horizontal lines inside the frame.
+    for (double y = gridSize; y < horizontalLimit; y += gridSize) {
       canvas.drawLine(
-        Offset(0, i),
-        Offset(size.width, i),
+        Offset(0, y),
+        Offset(size.width, y),
         paint,
       );
     }

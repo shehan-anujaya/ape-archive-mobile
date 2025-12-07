@@ -1,17 +1,12 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/network/dio_client.dart';
 import '../models/resource_model.dart';
 import '../models/tag_model.dart';
 import '../repositories/library_repository.dart';
 
-// Dio provider
-final _dioProvider = Provider<Dio>((ref) {
-  return Dio();
-});
-
 // Export repository provider for use in other features
 final libraryRepositoryProvider = Provider<LibraryRepository>((ref) {
-  final dio = ref.watch(_dioProvider);
+  final dio = ref.watch(dioProvider); // Use the properly configured Dio from dio_client
   return LibraryRepository(dio: dio);
 });
 
@@ -75,6 +70,7 @@ class BrowseNotifier extends StateNotifier<BrowseState> {
   /// Load initial resources
   Future<void> loadResources({
     List<String>? tagIds,
+    Map<String, String>? tagFilters,
     String? search,
     bool refresh = false,
   }) async {
@@ -90,6 +86,10 @@ class BrowseNotifier extends StateNotifier<BrowseState> {
 
     try {
       final response = await _repository.browseResources(
+        grade: tagFilters?['grade'],
+        subject: tagFilters?['subject'],
+        medium: tagFilters?['medium'],
+        resourceType: tagFilters?['resourceType'],
         search: search,
         page: 1,
         limit: 20,
@@ -140,8 +140,13 @@ class BrowseNotifier extends StateNotifier<BrowseState> {
   }
 
   /// Filter by tags
-  Future<void> filterByTags(List<String> tagIds) async {
-    await loadResources(tagIds: tagIds, search: state.searchQuery, refresh: true);
+  Future<void> filterByTags(List<String> tagIds, Map<String, String> tagFilters) async {
+    await loadResources(
+      tagIds: tagIds,
+      tagFilters: tagFilters,
+      search: state.searchQuery,
+      refresh: true,
+    );
   }
 
   /// Search resources

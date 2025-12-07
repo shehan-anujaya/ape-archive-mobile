@@ -11,22 +11,30 @@ ResourceModel _$ResourceModelFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String?,
-      driveFileId: json['driveFileId'] as String,
-      mimeType: json['mimeType'] as String,
-      fileSize: (json['fileSize'] as num).toInt(),
+      driveFileId: json['driveFileId'] as String?,
+      mimeType: json['mimeType'] as String?,
+      fileSize: (json['fileSize'] as num?)?.toInt(),
       thumbnail: json['thumbnail'] as String?,
-      status: $enumDecode(_$ResourceStatusEnumMap, json['status']),
-      uploaderId: json['uploaderId'] as String,
+      status:
+          $enumDecodeNullable(_$ResourceStatusEnumMap, json['status']) ??
+          ResourceStatus.pending,
+      uploaderId: json['uploaderId'] as String?,
       uploader: json['uploader'] == null
           ? null
           : UserModel.fromJson(json['uploader'] as Map<String, dynamic>),
-      tags: (json['tags'] as List<dynamic>)
-          .map((e) => TagModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      viewCount: (json['viewCount'] as num).toInt(),
-      downloadCount: (json['downloadCount'] as num).toInt(),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      tags:
+          (json['tags'] as List<dynamic>?)
+              ?.map((e) => TagModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      viewCount: (json['viewCount'] as num?)?.toInt() ?? 0,
+      downloadCount: (json['downloadCount'] as num?)?.toInt() ?? 0,
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] == null
+          ? null
+          : DateTime.parse(json['updatedAt'] as String),
     );
 
 Map<String, dynamic> _$ResourceModelToJson(ResourceModel instance) =>
@@ -38,14 +46,14 @@ Map<String, dynamic> _$ResourceModelToJson(ResourceModel instance) =>
       'mimeType': instance.mimeType,
       'fileSize': instance.fileSize,
       'thumbnail': instance.thumbnail,
-      'status': _$ResourceStatusEnumMap[instance.status]!,
+      'status': _$ResourceStatusEnumMap[instance.status],
       'uploaderId': instance.uploaderId,
       'uploader': instance.uploader,
       'tags': instance.tags,
       'viewCount': instance.viewCount,
       'downloadCount': instance.downloadCount,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'updatedAt': instance.updatedAt?.toIso8601String(),
     };
 
 const _$ResourceStatusEnumMap = {
