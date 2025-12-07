@@ -153,30 +153,40 @@ class _CategoryGridSelectorState extends ConsumerState<CategoryGridSelector> {
               ),
             ),
           ),
-          if (_selectedTags[TagType.grade] != null) ...[
-            const Icon(Icons.chevron_right, size: 16),
-            _buildBreadcrumbItem(
-              context,
-              _selectedTags[TagType.grade]!.name,
-              () => _clearFrom(TagType.grade),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_selectedTags[TagType.grade] != null) ...[
+                    const Icon(Icons.chevron_right, size: 16),
+                    _buildBreadcrumbItem(
+                      context,
+                      _selectedTags[TagType.grade]!.name,
+                      () => _clearFrom(TagType.grade),
+                    ),
+                  ],
+                  if (_selectedTags[TagType.subject] != null) ...[
+                    const Icon(Icons.chevron_right, size: 16),
+                    _buildBreadcrumbItem(
+                      context,
+                      _selectedTags[TagType.subject]!.name,
+                      () => _clearFrom(TagType.subject),
+                    ),
+                  ],
+                  if (_selectedTags[TagType.medium] != null) ...[
+                    const Icon(Icons.chevron_right, size: 16),
+                    _buildBreadcrumbItem(
+                      context,
+                      _selectedTags[TagType.medium]!.name,
+                      () => _clearFrom(TagType.medium),
+                    ),
+                  ],
+                ],
+              ),
             ),
-          ],
-          if (_selectedTags[TagType.subject] != null) ...[
-            const Icon(Icons.chevron_right, size: 16),
-            _buildBreadcrumbItem(
-              context,
-              _selectedTags[TagType.subject]!.name,
-              () => _clearFrom(TagType.subject),
-            ),
-          ],
-          if (_selectedTags[TagType.medium] != null) ...[
-            const Icon(Icons.chevron_right, size: 16),
-            _buildBreadcrumbItem(
-              context,
-              _selectedTags[TagType.medium]!.name,
-              () => _clearFrom(TagType.medium),
-            ),
-          ],
+          ),
         ],
       ),
     );
@@ -283,15 +293,15 @@ class _CategoryGridSelectorState extends ConsumerState<CategoryGridSelector> {
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(
-            // Pure transparent glass effect
+            // Transparent effect with subtle border
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.grey.withOpacity(0.2),
               width: 1.5,
             ),
             boxShadow: [
-              // Soft shadow for depth
+              // Subtle shadow for depth
               BoxShadow(
                 color: Colors.black.withOpacity(0.08),
                 blurRadius: 12,
@@ -322,16 +332,16 @@ class _CategoryGridSelectorState extends ConsumerState<CategoryGridSelector> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.transparent,
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.grey.withOpacity(0.2),
                           width: 1,
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         _getIconForTagType(node.tag.type),
-                        color: Colors.white.withOpacity(0.95),
+                        color: Colors.white.withOpacity(0.8),
                         size: 28,
                       ),
                     ),
@@ -342,7 +352,7 @@ class _CategoryGridSelectorState extends ConsumerState<CategoryGridSelector> {
                         Text(
                           node.tag.name,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.95),
+                            color: Colors.white.withOpacity(0.9),
                             fontWeight: FontWeight.bold,
                           ),
                           maxLines: 2,
