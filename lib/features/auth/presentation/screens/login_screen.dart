@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../shared/theme/app_colors.dart';
+import '../../../../shared/widgets/grid_background.dart';
 import '../../data/providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerWidget {
@@ -21,21 +22,11 @@ class LoginScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
-      body: Stack(
-        children: [
-          // Grid pattern background
-          Positioned.fill(
-            child: CustomPaint(
-              painter: GridPatternPainter(
-                gridColor: AppColors.gridDark,
-                gridSize: 40.0,
-              ),
-            ),
-          ),
-          // Login content
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
+      body: GridBackground(
+        backgroundColor: AppColors.backgroundDark,
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -186,25 +177,25 @@ class LoginScreen extends ConsumerWidget {
                     const SizedBox(height: 24),
                     
                     // Features
-                    Wrap(
-                      spacing: 24,
-                      runSpacing: 16,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        _FeatureChip(
-                          icon: Icons.menu_book,
-                          label: '10,000+ Resources',
-                        ),
-                        _FeatureChip(
-                          icon: Icons.people,
-                          label: 'Community Driven',
-                        ),
-                        _FeatureChip(
-                          icon: Icons.download,
-                          label: 'Free Downloads',
-                        ),
-                      ],
-                    ),
+                    // Wrap(
+                    //   spacing: 24,
+                    //   runSpacing: 16,
+                    //   alignment: WrapAlignment.center,
+                    //   children: [
+                    //     _FeatureChip(
+                    //       icon: Icons.menu_book,
+                    //       label: '10,000+ Resources',
+                    //     ),
+                    //     _FeatureChip(
+                    //       icon: Icons.people,
+                    //       label: 'Community Driven',
+                    //     ),
+                    //     _FeatureChip(
+                    //       icon: Icons.download,
+                    //       label: 'Free Downloads',
+                    //     ),
+                    //   ],
+                    // ),
                     
                     if (authState.error != null) ...[
                       const SizedBox(height: 24),
@@ -221,13 +212,12 @@ class LoginScreen extends ConsumerWidget {
               ),
             ),
           ),
-        ],
       ),
     );
   }
 }
 
-/// Custom painter for squared grid pattern
+/// Custom painter for squared grid pattern (kept for backward compatibility)
 class GridPatternPainter extends CustomPainter {
   final Color gridColor;
   final double gridSize;

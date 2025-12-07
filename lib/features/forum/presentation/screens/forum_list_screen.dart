@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/theme/app_colors.dart';
-import '../../../library/data/models/resource_model.dart';
-import '../../../library/data/providers/library_provider.dart';
-import '../../../library/presentation/widgets/resource_card.dart';
-import '../../../library/presentation/screens/resource_detail_screen.dart';
-import '../../data/models/question_model.dart';
+import '../../../../shared/widgets/grid_background.dart';
 
 class ForumListScreen extends ConsumerStatefulWidget {
   const ForumListScreen({super.key});
@@ -32,8 +28,10 @@ class _ForumListScreenState extends ConsumerState<ForumListScreen> {
           ),
         ],
       ),
-      body: Center(
-        child: Column(
+      body: GridBackground(
+        backgroundColor: AppColors.backgroundDark,
+        child: Center(
+          child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
@@ -57,6 +55,7 @@ class _ForumListScreenState extends ConsumerState<ForumListScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

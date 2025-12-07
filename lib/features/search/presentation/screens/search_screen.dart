@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import '../../../../shared/theme/app_colors.dart';
+import '../../../../shared/widgets/grid_background.dart';
 import '../../../library/data/models/resource_model.dart';
 import '../../../library/data/providers/library_provider.dart';
 import '../../../library/presentation/widgets/resource_card.dart';
@@ -98,7 +99,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ),
         ],
       ),
-      body: _buildBody(),
+      body: GridBackground(
+        backgroundColor: AppColors.backgroundDark,
+        child: _buildBody(),
+      ),
     );
   }
 

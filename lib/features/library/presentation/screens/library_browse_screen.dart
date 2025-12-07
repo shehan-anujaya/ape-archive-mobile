@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/theme/app_colors.dart';
+import '../../../../shared/widgets/grid_background.dart';
 import '../../data/models/resource_model.dart';
 import '../../data/providers/library_provider.dart';
 import '../widgets/resource_card.dart';
@@ -63,7 +64,9 @@ class _LibraryBrowseScreenState extends ConsumerState<LibraryBrowseScreen> {
           ),
         ],
       ),
-      body: showCategorySelector && browseState.resources.isEmpty
+      body: GridBackground(
+        backgroundColor: AppColors.backgroundDark,
+        child: showCategorySelector && browseState.resources.isEmpty
           ? // Show category grid when no resources loaded yet
             CategoryGridSelector(
               selectedTagIds: selectedTagIds,
@@ -209,6 +212,7 @@ class _LibraryBrowseScreenState extends ConsumerState<LibraryBrowseScreen> {
                 ],
               ),
             ),
+      ),
     );
   }
 
