@@ -86,7 +86,7 @@ class _NewsScreenState extends State<NewsScreen> with SingleTickerProviderStateM
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Education News',
+                          'Educational News',
                           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
