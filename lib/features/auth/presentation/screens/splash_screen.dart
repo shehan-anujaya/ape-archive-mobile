@@ -311,77 +311,63 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
                     
                     const SizedBox(height: 40),
                     
-                    // Animated tagline
+                    // Minimalistic tagline
                     Transform.translate(
                       offset: Offset(0, _slideAnimation.value),
                       child: FadeTransition(
                         opacity: _fadeAnimation,
-                        child: Column(
-                          children: [
-                            Text(
-                              'Sri Lanka\'s Digital Learning Hub',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              width: 60,
-                              height: 3,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    AppColors.primary.withOpacity(0),
-                                    AppColors.primary,
-                                    AppColors.primary.withOpacity(0),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          'Sri Lanka\'s Digital Learning Hub',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 2.0,
+                          ),
                         ),
                       ),
                     ),
                     
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 60),
                     
-                    // Modern loading indicator
+                    // Elegant pulsing dots loader
                     FadeTransition(
                       opacity: _fadeAnimation,
-                      child: SizedBox(
-                        width: 50,
-                        height: 50,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Outer ring
-                            SizedBox(
-                              width: 50,
-                              height: 50,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.primary.withOpacity(0.3),
+                      child: AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, child) {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(3, (index) {
+                              final delay = index * 0.2;
+                              final progress = (_pulseController.value + delay) % 1.0;
+                              final scale = 0.5 + (0.5 * (1 - (progress - 0.5).abs() * 2));
+                              final opacity = 0.3 + (0.7 * (1 - (progress - 0.5).abs() * 2));
+                              
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                child: Transform.scale(
+                                  scale: scale,
+                                  child: Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.primary.withOpacity(opacity),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.primary.withOpacity(opacity * 0.5),
+                                          blurRadius: 8,
+                                          spreadRadius: 2,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            // Inner spinning ring
-                            SizedBox(
-                              width: 50,
-                              height: 50,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                              );
+                            }),
+                          );
+                        },
                       ),
                     ),
                   ],
