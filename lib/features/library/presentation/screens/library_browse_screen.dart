@@ -59,16 +59,27 @@ class _LibraryBrowseScreenState extends ConsumerState<LibraryBrowseScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Large title section
+              // Large title section with search icon
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-                child: Text(
-                  'Library',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 32,
-                    color: Colors.white,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Library',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 32,
+                        color: Colors.white,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.search, size: 28, color: Colors.white),
+                      onPressed: () {
+                        // Navigate to search screen
+                      },
+                    ),
+                  ],
                 ),
               ),
               
